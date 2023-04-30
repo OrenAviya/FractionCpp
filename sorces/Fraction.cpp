@@ -21,8 +21,7 @@ using namespace ariel;
         }
 
        Fraction :: Fraction(double num){
-        double decimal = num;
-        int numerator = (int)(decimal * 1000);
+        int numerator = static_cast<int>(num * 1000);
         int denominator = 1000;
         
         int gcf = gcd(numerator, denominator); // find greatest common factor
@@ -91,12 +90,6 @@ using namespace ariel;
         return frac1;
         }
 
-        Fraction Fraction:: operator-(int num){
-        Fraction frac1 =  Fraction(num);
-        frac1 = *this - frac1;
-        frac1.reduce();
-        return frac1;
-        }
 
         const Fraction operator-(double num , const Fraction f){
             Fraction temp(num);
@@ -104,8 +97,8 @@ using namespace ariel;
         }
 
         Fraction Fraction:: operator/(Fraction f){
-            int numerator = this->den * f.getNum();
-            int denominator = this->num * f.getDen();
+            int numerator = this->num * f.getDen();
+            int denominator = this->den * f.getNum();
             Fraction frac = Fraction(numerator , denominator);
              frac.reduce();
              return frac;
@@ -167,14 +160,14 @@ using namespace ariel;
 
 
         bool Fraction :: operator>=(const Fraction& f) const{
-            if ((this ->num/this->den) >= (f.getNum()/f.getDen() )){
+            if (*this > f || *this == f ){
                 return true;
             } 
             return false;
             }
          bool Fraction ::operator>=(double number) const{
-            Fraction temp(number);
-            return (*this >= temp);
+
+            return (*this > number || *this == number );
          }
 
         const bool operator>=(double num , const Fraction f){
@@ -183,9 +176,8 @@ using namespace ariel;
         }
 
         bool Fraction ::operator <=(const Fraction &f) const{
-            if (*this < f || *this == f)
-                return true;
-            return false;
+            return (*this < f || *this == f);
+                
         }
         bool Fraction ::operator<=(double number) const{
             Fraction temp(number);
@@ -197,7 +189,7 @@ using namespace ariel;
         }
 
         bool Fraction :: operator <(const Fraction &f) const{
-            return this->num * f.getDen() < f.getNum() * this->den; 
+            return ((double)(this->num * f.getDen()) < (double)(f.getNum() * this->den)); 
         }
          bool Fraction :: operator < (double number) const{
             Fraction temp(number);
@@ -208,31 +200,33 @@ using namespace ariel;
             return (temp < f);
         }
 
-        bool Fraction:: operator>(double num) const{
-            if ((this->num / this->den) > num){
-                return true;
-            }
-            return false;
+        bool Fraction:: operator >(float number) const{
+            return(this -> num > (number* this->den));
         }
         
         bool Fraction::operator >(const Fraction &f) const{
-            return ((this->num / this->den) > (f.getNum()/f.getDen()));
+             return ((double)(this->num * f.getDen()) > (double)(f.getNum() * this->den));
         }
 
-        const bool operator>(double num , const Fraction f){
-            Fraction temp(num);
+        const bool operator >(double number , const Fraction f){
+            Fraction temp(number);
             return (temp > f);
         }
 
         bool Fraction:: operator==(const Fraction& f) const{
-            if (num == f.getNum()  && den == f.getDen()){
-                return true;
-            }
-            return false;
+            // to be sure they both have only three numbers after point
+            double f1 = std :: round ((double)(this->num)/ this->den*1000)/1000.0;
+            double f2 = std :: round ((double)(f.getNum()) / f.getDen()*1000)/ 1000.0; 
+
+            return (f1 == f2);
         }
+
         bool Fraction:: operator == (double number)const{
-            Fraction temp(number);
-            return (*this == temp);
+           return (number == *this);
+           
+        }
+        const bool operator ==(double num , const Fraction f){
+            return (Fraction(num) == f);
         }
 
         std::ostream& operator<<(std::ostream& output, const Fraction& f)
@@ -244,17 +238,18 @@ using namespace ariel;
         char c ;
         int num , den;
          
-        input >> num >> c >> den ;
+        input >> num >> den ;
         
-        if (input && c == '/' && den != 0) {
+        if (input && den != 0) {
         f.setNum(num);
         f.setDen(den);
     }
-    else {
-        input.setstate(std::ios::failbit);
+     else {
+        throw runtime_error("Bad_in");
     }
-        return input;
-        }
+    return input;
+}
+
 
    // for reduction     
 int Fraction::gcd(int a, int b) { // function to find greatest common divisor
